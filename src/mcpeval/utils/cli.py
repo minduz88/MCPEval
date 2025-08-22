@@ -7,11 +7,11 @@ to avoid code duplication.
 """
 import json
 import logging
-import sys
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from mcpeval.commons.types import Task, ToolCall
 
@@ -170,7 +170,9 @@ def print_tool_calls(tool_calls):
         try:
             # Pretty print the parameters as JSON
             print(
-                json.dumps(tool_call.tool_parameters, indent=4).replace("\n", "\n    ")
+                json.dumps(
+                    tool_call.tool_parameters, indent=4, ensure_ascii=False
+                ).replace("\n", "\n    ")
             )
         except:
             print(f"    {tool_call.tool_parameters}")
@@ -287,7 +289,7 @@ def save_tasks_to_jsonl(tasks, output_file: str, append: bool = False):
             task_dict = task.model_dump()
 
             # Write as a single line JSON
-            f.write(json.dumps(task_dict) + "\n")
+            f.write(json.dumps(task_dict, ensure_ascii=False) + "\n")
 
     if len(task_list) == 1:
         logger.info(f"Saved result for task: {task_list[0].name}")

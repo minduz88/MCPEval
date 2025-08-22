@@ -1,7 +1,7 @@
 import json
+import logging
 import os
 import uuid
-import logging
 from typing import List
 
 from ..commons.types import Task
@@ -75,7 +75,7 @@ def append_task_to_jsonl(
     # Append to file
     try:
         with open(file_path, "a") as f:
-            f.write(json.dumps(task_dict) + "\n")
+            f.write(json.dumps(task_dict, ensure_ascii=False) + "\n")
     except IOError as e:
         raise IOError(f"Error writing to file {file_path}: {str(e)}")
 

@@ -5,22 +5,23 @@ Model Evaluator Module
 This module provides functionality for evaluating LLM models on MCP tasks.
 It enables connecting to an MCP server, executing tasks, and reporting results.
 """
+import asyncio
+import json
+import logging
 import os
 import sys
-import json
-import asyncio
-import logging
-from pathlib import Path
-from typing import List, Dict, Any, Optional
 import time
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from mcpeval.eval.task_executor import LLMTaskExecutor
-from mcpeval.commons.types import Task
-from mcpeval.synthesis.utils import load_tasks_from_jsonl
-from mcpeval.client.openai_client import OpenAIMCPClient
-from mcpeval.utils.cli import load_prompt_from_file, load_jsonl, setup_colored_logging
-from mcpeval.models.llms import OpenAIWrapper
 from dotenv import load_dotenv
+
+from mcpeval.client.openai_client import OpenAIMCPClient
+from mcpeval.commons.types import Task
+from mcpeval.eval.task_executor import LLMTaskExecutor
+from mcpeval.models.llms import OpenAIWrapper
+from mcpeval.synthesis.utils import load_tasks_from_jsonl
+from mcpeval.utils.cli import load_jsonl, load_prompt_from_file, setup_colored_logging
 
 # Load environment variables
 load_dotenv()
@@ -48,9 +49,29 @@ def save_evaluation_results_to_jsonl(
     with open(output_file, mode) as f:
         for result in result_list:
             # Write as a single line JSON
-            f.write(json.dumps(result) + "\n")
+            f.write(json.dumps(result, ensure_ascii=False) + "\n")
 
     logger.info(f"Saved {len(result_list)} evaluation results to {output_file}")
+
+
+def save_evaluation_results_to_json(
+    results: List[Dict[str, Any]], output_file: str
+) -> None:
+    """Save evaluation results to a JSON array file.
+
+    Args:
+        results: List of evaluation result dictionaries
+        output_file: Path to output JSON file
+    """
+    # Convert to list if single result
+    result_list = results if isinstance(results, list) else [results]
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(result_list, f, ensure_ascii=False, indent=2)
+
+    logger.info(
+        f"Saved {len(result_list)} evaluation results to {output_file} (JSON array format)"
+    )
 
 
 def load_evaluation_results_from_jsonl(file_path: str) -> List[Dict[str, Any]]:
@@ -314,6 +335,13 @@ async def evaluate_performance(
         if output_file:
             logger.info(f"Results saved to {output_file}")
 
+            # Also save as JSON array for easier analysis
+            json_output_file = output_file.replace(".json", "_array.json").replace(
+                ".jsonl", "_array.json"
+            )
+            if json_output_file != output_file:
+                save_evaluation_results_to_json(results, json_output_file)
+
         # Cleanup
         await client.cleanup()
         logger.info("Client resources cleaned up")
@@ -529,4 +557,5 @@ def main(args):
             print(f"{RED}{BOLD}❌ Evaluation failed: {e}{RESET}")
         else:
             print(f"Evaluation failed: {e}")
+        sys.exit(1)
         sys.exit(1)

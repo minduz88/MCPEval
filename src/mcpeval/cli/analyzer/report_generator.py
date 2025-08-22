@@ -6,9 +6,9 @@ This module contains all the report generation and visualization logic.
 
 import json
 import os
-from pathlib import Path
-from typing import Dict, List, Any
 import sys
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add the src directory to the Python path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
@@ -85,12 +85,14 @@ Use markdown table format like this example:
 |------|--------------|------------------|-------------|
 | tool_name | 85.0% | 17/20 | 20 |
 
-Format the report in clear markdown with appropriate sections, emphasis, and well-structured tables."""
+Format the report in clear markdown with appropriate sections, emphasis, and well-structured tables.
+
+IMPORTANT: Generate the entire report in Korean language (한글). Use Korean terms for all technical concepts and provide Korean explanations."""
 
     # User prompt with analysis results
     user_prompt = f"""Please analyze this model evaluation data and generate a performance report:
 
-{json.dumps(analysis, indent=2)}"""
+{json.dumps(analysis, indent=2, ensure_ascii=False)}"""
 
     try:
         # Generate the report
